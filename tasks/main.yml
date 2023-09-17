@@ -174,7 +174,7 @@
 
 - name: Get list of Proxmox image datastores
   ansible.builtin.command:
-    cmd: pvesh get /nodes/fh-proxmox0/storage -content images --output-format json
+    cmd: pvesh get /nodes/{{ inventory_hostname }}/storage -content images --output-format json
   register: image_datastores_output
   changed_when: false
 

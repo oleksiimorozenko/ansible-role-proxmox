@@ -14,14 +14,21 @@
     filename: pve-no-subscription
     repo: >-
       deb http://download.proxmox.com/debian/pve
-        bullseye pve-no-subscription
+        bookworm pve-no-subscription
     state: present
+
+- name: Copy over bash preferences
+  become: true
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/etc/profile.d/bash_defaults.sh"
+    dest: /etc/profile.d/bash_defaults.sh
+    mode: '644'
 
 # # This is after the proxmox repo removal/add intentionally
 # # Since this role includes apt update/upgrade
-- name: Include Debian role
-  ansible.builtin.include_role:
-    name: dronenb.debian
+# - name: Include Debian role
+#   ansible.builtin.include_role:
+#     name: dronenb.debian
 
 - name: Install useful packages
   ansible.builtin.apt:
@@ -29,7 +36,19 @@
     pkg:
       - jq
       - libguestfs-tools
+      - mc
       - python3-bs4
+
+- name: Install vim
+  ansible.builtin.package:
+    name: vim
+    state: present
+
+- name: Copy vimrc.local file
+  ansible.builtin.copy:
+    src: "{{ role_path }}/files/etc/vim/vimrc.local"
+    dest: /etc/vim/vimrc.local
+    mode: '644'
 
 - name: Check if hush login enabled
   ansible.builtin.stat:

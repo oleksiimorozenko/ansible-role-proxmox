@@ -35,6 +35,16 @@
 #   ansible.builtin.include_role:
 #     name: dronenb.debian
 
+- name: Update package cache
+  ansible.builtin.apt:
+    update_cache: true
+
+- name: Aptitude safe upgrade
+  become: true
+  ansible.builtin.apt:
+    update_cache: false
+    upgrade: safe
+
 - name: Install useful packages
   ansible.builtin.apt:
     update_cache: false
@@ -54,6 +64,14 @@
     src: "{{ role_path }}/files/etc/vim/vimrc.local"
     dest: /etc/vim/vimrc.local
     mode: '644'
+
+- name: Remove useless packages from the cache
+  ansible.builtin.apt:
+    autoclean: true
+
+- name: Remove dependencies that are no longer required
+  ansible.builtin.apt:
+    autoremove: true
 
 - name: Check if hush login enabled
   ansible.builtin.stat:

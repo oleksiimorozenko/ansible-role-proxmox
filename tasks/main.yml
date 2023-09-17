@@ -124,45 +124,45 @@
     state: present
   notify: Update grub
 
-- name: Check existing Proxmox roles
-  changed_when: false
-  ansible.builtin.command:
-    cmd: /usr/sbin/pveum role list --output-format json
-  register: existing_proxmox_roles_output
+# - name: Check existing Proxmox roles
+#   changed_when: false
+#   ansible.builtin.command:
+#     cmd: /usr/sbin/pveum role list --output-format json
+#   register: existing_proxmox_roles_output
 
-- name: Parse Proxmox roles JSON
-  ansible.builtin.set_fact:
-    existing_proxmox_roles: "{{ existing_proxmox_roles_output.stdout | from_json }}"
+# - name: Parse Proxmox roles JSON
+#   ansible.builtin.set_fact:
+#     existing_proxmox_roles: "{{ existing_proxmox_roles_output.stdout | from_json }}"
 
-- name: Create Proxmox roles
-  loop: "{{ proxmox_roles }}"
-  loop_control:
-    label: "{{ item.name }}"
-  include_tasks: create_proxmox_roles.yml
+# - name: Create Proxmox roles
+#   loop: "{{ proxmox_roles }}"
+#   loop_control:
+#     label: "{{ item.name }}"
+#   include_tasks: create_proxmox_roles.yml
 
-- name: Check existing Proxmox users
-  changed_when: false
-  ansible.builtin.command:
-    cmd: /usr/sbin/pveum user list --output-format json
-  register: existing_proxmox_user_output
+# - name: Check existing Proxmox users
+#   changed_when: false
+#   ansible.builtin.command:
+#     cmd: /usr/sbin/pveum user list --output-format json
+#   register: existing_proxmox_user_output
 
-- name: Parse Proxmox user JSON
-  ansible.builtin.set_fact:
-    existing_proxmox_users: "{{ existing_proxmox_user_output.stdout | from_json }}"
+# - name: Parse Proxmox user JSON
+#   ansible.builtin.set_fact:
+#     existing_proxmox_users: "{{ existing_proxmox_user_output.stdout | from_json }}"
 
-- name: Create Proxmox users
-  loop: "{{ proxmox_users }}"
-  loop_control:
-    label: "{{ item.username }}"
-  include_tasks: create_proxmox_users.yml
+# - name: Create Proxmox users
+#   loop: "{{ proxmox_users }}"
+#   loop_control:
+#     label: "{{ item.username }}"
+#   include_tasks: create_proxmox_users.yml
 
-- name: Retrieve image URL and checksum for Debian Cloud image
-  get_debian_cloud:
-  register: debian_cloud_image
+# - name: Retrieve image URL and checksum for Debian Cloud image
+#   get_debian_cloud:
+#   register: debian_cloud_image
 
-- name: Retrieve image URL and checksum for Rocky Cloud image
-  get_rocky_cloud:
-  register: rocky_cloud_image
+# - name: Retrieve image URL and checksum for Rocky Cloud image
+#   get_rocky_cloud:
+#   register: rocky_cloud_image
 
 - name: Retrieve image URL and checksum for Ubuntu Cloud image
   get_ubuntu_cloud:
@@ -189,8 +189,8 @@
 
 - name: Download and install cloud images to Proxmox
   loop:
-    - "{{ debian_cloud_image }}"
-    - "{{ rocky_cloud_image }}"
+  #  - "{{ debian_cloud_image }}"
+  #  - "{{ rocky_cloud_image }}"
     - "{{ ubuntu_cloud_image }}"
   loop_control:
     loop_var: image
@@ -205,7 +205,8 @@
     cmd: pveam update
   changed_when: false
 
-- name: List available Debian/Ubuntu/Rocky LXC templates
+# - name: List available Debian/Ubuntu/Rocky LXC templates
+- name: List available Ubuntu LXC templates
   ansible.builtin.shell:
     cmd: pveam available --section system | awk '{print $2}' | grep -E '^ubuntu|debian|rockylinux'
   register: lxc_templates

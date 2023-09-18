@@ -22,19 +22,6 @@
         bookworm pve-no-subscription
     state: present
 
-- name: Copy over bash preferences
-  become: true
-  ansible.builtin.copy:
-    src: "{{ role_path }}/files/etc/profile.d/bash_defaults.sh"
-    dest: /etc/profile.d/bash_defaults.sh
-    mode: '644'
-
-# # This is after the proxmox repo removal/add intentionally
-# # Since this role includes apt update/upgrade
-# - name: Include Debian role
-#   ansible.builtin.include_role:
-#     name: dronenb.debian
-
 - name: Update package cache
   ansible.builtin.apt:
     update_cache: true
@@ -124,96 +111,13 @@
     state: present
   notify: Update grub
 
-# - name: Check existing Proxmox roles
-#   changed_when: false
-#   ansible.builtin.command:
-#     cmd: /usr/sbin/pveum role list --output-format json
-#   register: existing_proxmox_roles_output
-
-# - name: Parse Proxmox roles JSON
-#   ansible.builtin.set_fact:
-#     existing_proxmox_roles: "{{ existing_proxmox_roles_output.stdout | from_json }}"
-
-# - name: Create Proxmox roles
-#   loop: "{{ proxmox_roles }}"
-#   loop_control:
-#     label: "{{ item.name }}"
-#   include_tasks: create_proxmox_roles.yml
-
-# - name: Check existing Proxmox users
-#   changed_when: false
-#   ansible.builtin.command:
-#     cmd: /usr/sbin/pveum user list --output-format json
-#   register: existing_proxmox_user_output
-
-# - name: Parse Proxmox user JSON
-#   ansible.builtin.set_fact:
-#     existing_proxmox_users: "{{ existing_proxmox_user_output.stdout | from_json }}"
-
-# - name: Create Proxmox users
-#   loop: "{{ proxmox_users }}"
-#   loop_control:
-#     label: "{{ item.username }}"
-#   include_tasks: create_proxmox_users.yml
-
-# - name: Retrieve image URL and checksum for Debian Cloud image
-#   get_debian_cloud:
-#   register: debian_cloud_image
-
-# - name: Retrieve image URL and checksum for Rocky Cloud image
-#   get_rocky_cloud:
-#   register: rocky_cloud_image
-
-- name: Retrieve image URL and checksum for Ubuntu Cloud image
-  get_ubuntu_cloud:
-  register: ubuntu_cloud_image
-
-- name: Get list of existing Proxmox VM Templates
-  get_proxmox_vm_templates:
-  register: existing_proxmox_templates
-
-- name: Get list of Proxmox image datastores
-  ansible.builtin.command:
-    cmd: pvesh get /nodes/{{ inventory_hostname }}/storage -content images --output-format json
-  register: image_datastores_output
-  changed_when: false
-
-- name: Parse Proxmox image datastores output
-  ansible.builtin.set_fact:
-    image_datastores: "{{ image_datastores_output.stdout | from_json }}"
-
-- name: Create variable for Proxmox datastore if unset
-  when: proxmox_template_datastore is undefined
-  ansible.builtin.set_fact:
-    proxmox_template_datastore: "{{ image_datastores.0.storage }}"
-
-- name: Download and install cloud images to Proxmox
-  loop:
-  #  - "{{ debian_cloud_image }}"
-  #  - "{{ rocky_cloud_image }}"
-    - "{{ ubuntu_cloud_image }}"
-  loop_control:
-    loop_var: image
-    label: "{{ image.meta.image_name }}"
-  vars:
-    query1: "[?name==`{{ image.meta.template_name }}` && image_checksum==`{{ image.meta.image_checksum }}`]"
-  when: not (existing_proxmox_templates.meta | json_query(query1))
-  include_tasks: create_cloud_vm_template.yml
-
 - name: Get available Proxmox LXC templates
   ansible.builtin.command:
     cmd: pveam update
   changed_when: false
 
-# - name: List available Debian/Ubuntu/Rocky LXC templates
 - name: List available Ubuntu LXC templates
   ansible.builtin.shell:
-    cmd: pveam available --section system | awk '{print $2}' | grep -E '^ubuntu|debian|rockylinux'
+    cmd: pveam available --section system | awk '{print $2}' | grep -E '^ubuntu'
   register: lxc_templates
   changed_when: false
-
-- name: "Download Proxmox LXC templates"
-  loop: "{{ lxc_templates.stdout_lines }}"
-  loop_control:
-    loop_var: template_filename
-  include_tasks: download_lxc_template.yml
